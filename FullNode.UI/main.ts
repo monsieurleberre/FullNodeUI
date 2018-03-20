@@ -1,7 +1,8 @@
-import { app, BrowserWindow, Menu, nativeImage, screen, Tray } from 'electron';
-import * as path from 'path';
-import * as url from 'url';
-import * as os from 'os';
+import { app, BrowserWindow, Menu, nativeImage, screen, Tray } from "electron";
+import * as path from "path";
+import * as url from "url";
+import * as os from "os";
+import { AppConfigService } from "./src/app/shared/services/appConfig.service";
 
 let serve;
 let testnet;
@@ -10,12 +11,12 @@ serve = args.some(val => val === "--serve" || val === "-serve");
 testnet = args.some(val => val === "--testnet" || val === "-testnet");
 
 try {
-  require('dotenv').config();
+  require("dotenv").config();
 } catch {
-  console.log('asar');
+  console.log("asar");
 }
 
-require('electron-context-menu')({
+require("electron-context-menu")({
   showInspectElement: serve
 });
 
@@ -35,15 +36,16 @@ function createWindow() {
   });
 
   if (serve) {
-    require('electron-reload')(__dirname, {
-    });
-    mainWindow.loadURL('http://localhost:4200');
+    require("electron-reload")(__dirname, {});
+    mainWindow.loadURL("http://localhost:4200");
   } else {
-    mainWindow.loadURL(url.format({
-      pathname: path.join(__dirname, 'dist/index.html'),
-      protocol: 'file:',
-      slashes: true
-    }));
+    mainWindow.loadURL(
+      url.format({
+        pathname: path.join(__dirname, "dist/index.html"),
+        protocol: "file:",
+        slashes: true
+      })
+    );
   }
 
   if (serve) {
@@ -51,50 +53,53 @@ function createWindow() {
   }
 
   // Emitted when the window is going to close.
-  mainWindow.on('close', () => {
-  })
+  mainWindow.on("close", () => {});
 
   // Emitted when the window is closed.
-  mainWindow.on('closed', () => {
+  mainWindow.on("closed", () => {
     // Dereference the window object, usually you would store window
     // in an array if your app supports multi windows, this is the time
     // when you should delete the corresponding element.
     mainWindow = null;
   });
+}
 
-};
+let appConfigService = new AppConfigService("./appConfig.json");
 
 // This method will be called when Electron has finished
 // initialization and is ready to create browser windows.
 // Some APIs can only be used after this event occurs.
-app.on('ready', () => {
+app.on("ready", () => {
   if (serve) {
-    console.log("Stratis UI was started in development mode. This requires the user to be running the Stratis Full Node Daemon himself.")
-  }
-  else {
-    startStratisApi();
+    console.log(
+      "Stratis UI was started in development mode. This requires the user to be running the Stratis Full Node Daemon himself."
+    );
+    if (appConfigService.startNode)
+      console.debug("In non DEV mode, configuration would have started a node");
+  } else {
+    if (appConfigService.startNode) startStratisApi();
   }
   createTray();
   createWindow();
-  if (os.platform() === 'darwin'){
+  if (os.platform() === "darwin") {
     createMenu();
   }
 });
 
-app.on('before-quit', () => {
+app.on("before-quit", () => {
   closeStratisApi();
 });
 
 // Quit when all windows are closed.
-app.on('window-all-closed', () => {
+app.on("window-all-closed", () => {
   // On OS X it is common for applications and their menu bar
   // to stay active until the user quits explicitly with Cmd + Q
-  if (process.platform !== 'darwin') {
+  if (process.platform !== "darwin") {
     app.quit();
   }
 });
 
-app.on('activate', () => {
+app.on("activate", () => {
   // On OS X it's common to re-create a window in the app when the
   // dock icon is clicked and there are no other windows open.
   if (mainWindow === null) {
@@ -103,47 +108,54 @@ app.on('activate', () => {
 });
 
 function closeStratisApi() {
-  // if (process.platform !== 'darwin' && !serve) {
-    if (process.platform !== 'darwin' && !serve && !testnet) {
-    var http2 = require('http');
-    const options1 = {
-      hostname: 'localhost',
-      port: 37221,
-      path: '/api/node/shutdown',
-      method: 'POST'
+  if (process.platform === "darwin" || serve) {
+    console.debug("Leaving without closing the Stratis API");
+  }
+  let apiCall;
+  if (appConfigService.apiUrl) {
+    apiCall = {
+      hostname: appConfigService.apiUrl.hostname,
+      port: appConfigService.apiUrl.port,
+      path: appConfigService.apiUrl.pathname
     };
+  } else {
+    apiCall = {
+      hostname: appConfigService.apiUrl.hostname,
+      port: testnet ? 38221 : 37221,
+      path: "api"
+    };
+  }
+  apiCall.path += "/node/shutdown";
+  apiCall.method = "POST";
 
-   const req = http2.request(options1, (res) => {});
-   req.write('');
-   req.end();
+  var http2 = require("http");
 
-   } else if (process.platform !== 'darwin' && !serve && testnet) {
-     var http2 = require('http');
-     const options2 = {
-       hostname: 'localhost',
-       port: 38221,
-       path: '/api/node/shutdown',
-       method: 'POST'
-     };
-
-   const req = http2.request(options2, (res) => {});
-   req.write('');
-   req.end();
-   }
-};
+  const req = http2.request(apiCall, res => {});
+  req.write("");
+  req.end();
+}
 
 function startStratisApi() {
   var stratisProcess;
-  const spawnStratis = require('child_process').spawn;
+  const spawnStratis = require("child_process").spawn;
 
   //Start Stratis Daemon
-  let apiPath = path.resolve(__dirname, 'assets//daemon//Stratis.StratisD');
-  if (os.platform() === 'win32') {
-    apiPath = path.resolve(__dirname, '..\\..\\resources\\daemon\\Stratis.StratisD.exe');
-  } else if(os.platform() === 'linux') {
-	  apiPath = path.resolve(__dirname, '..//..//resources//daemon//Stratis.StratisD');
+  let apiPath = path.resolve(__dirname, "assets//daemon//Stratis.StratisD");
+  if (os.platform() === "win32") {
+    apiPath = path.resolve(
+      __dirname,
+      "..\\..\\resources\\daemon\\Stratis.StratisD.exe"
+    );
+  } else if (os.platform() === "linux") {
+    apiPath = path.resolve(
+      __dirname,
+      "..//..//resources//daemon//Stratis.StratisD"
+    );
   } else {
-	  apiPath = path.resolve(__dirname, '..//..//resources//daemon//Stratis.StratisD');
+    apiPath = path.resolve(
+      __dirname,
+      "..//..//resources//daemon//Stratis.StratisD"
+    );
   }
 
   if (!testnet) {
@@ -151,12 +163,12 @@ function startStratisApi() {
       detached: true
     });
   } else if (testnet) {
-    stratisProcess = spawnStratis(apiPath, ['-testnet'], {
+    stratisProcess = spawnStratis(apiPath, ["-testnet"], {
       detached: true
     });
   }
 
-  stratisProcess.stdout.on('data', (data) => {
+  stratisProcess.stdout.on("data", data => {
     writeLog(`Stratis: ${data}`);
   });
 }
@@ -165,29 +177,31 @@ function createTray() {
   //Put the app in system tray
   let trayIcon;
   if (serve) {
-    trayIcon = nativeImage.createFromPath('./src/assets/images/icon-tray.png');
+    trayIcon = nativeImage.createFromPath("./src/assets/images/icon-tray.png");
   } else {
-    trayIcon = nativeImage.createFromPath(path.resolve(__dirname, '../../resources/src/assets/images/icon-tray.png'));
+    trayIcon = nativeImage.createFromPath(
+      path.resolve(__dirname, "../../resources/src/assets/images/icon-tray.png")
+    );
   }
 
   let systemTray = new Tray(trayIcon);
   const contextMenu = Menu.buildFromTemplate([
     {
-      label: 'Hide/Show',
+      label: "Hide/Show",
       click: function() {
         mainWindow.isVisible() ? mainWindow.hide() : mainWindow.show();
       }
     },
     {
-      label: 'Exit',
+      label: "Exit",
       click: function() {
         app.quit();
       }
     }
   ]);
-  systemTray.setToolTip('Stratis Wallet');
+  systemTray.setToolTip("Stratis Wallet");
   systemTray.setContextMenu(contextMenu);
-  systemTray.on('click', function() {
+  systemTray.on("click", function() {
     if (!mainWindow.isVisible()) {
       mainWindow.show();
     }
@@ -197,15 +211,13 @@ function createTray() {
     }
   });
 
-  app.on('window-all-closed', function () {
+  app.on("window-all-closed", function() {
     if (systemTray) systemTray.destroy();
   });
-};
+}
 
 function writeLog(msg) {
   console.log(msg);
-};
+}
 
-function createMenu() {
-
-};
+function createMenu() {}

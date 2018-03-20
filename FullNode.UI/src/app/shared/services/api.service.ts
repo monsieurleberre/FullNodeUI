@@ -8,7 +8,6 @@ import "rxjs/add/observable/interval";
 import 'rxjs/add/operator/startWith';
 
 import { GlobalService } from './global.service';
-
 import { WalletCreation } from '../classes/wallet-creation';
 import { WalletRecovery } from '../classes/wallet-recovery';
 import { WalletLoad } from '../classes/wallet-load';
@@ -17,17 +16,18 @@ import { Mnemonic } from '../classes/mnemonic';
 import { FeeEstimation } from '../classes/fee-estimation';
 import { TransactionBuilding } from '../classes/transaction-building';
 import { TransactionSending } from '../classes/transaction-sending';
+import { AppConfigService } from './appConfig.service';
 
 /**
  * For information on the API specification have a look at our swagger files located at http://localhost:5000/swagger/ when running the daemon
  */
 @Injectable()
 export class ApiService {
-    constructor(private http: Http, private globalService: GlobalService) {};
+    constructor(private http: Http, private globalService: GlobalService, private appConfigService: AppConfigService) {};
 
     private headers = new Headers({'Content-Type': 'application/json'});
     private pollingInterval = 3000;
-    private stratisApiUrl = 'http://localhost:38221/api';
+    private stratisApiUrl = this.appConfigService.apiUrl.toString()
 
     /**
      * Gets available wallets at the default path
