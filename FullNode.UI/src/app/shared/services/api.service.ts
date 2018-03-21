@@ -16,7 +16,7 @@ import { Mnemonic } from '../classes/mnemonic';
 import { FeeEstimation } from '../classes/fee-estimation';
 import { TransactionBuilding } from '../classes/transaction-building';
 import { TransactionSending } from '../classes/transaction-sending';
-import { AppConfigService } from './appConfig.service';
+import { AppConfigService } from './app-config.service';
 
 /**
  * For information on the API specification have a look at our swagger files located at http://localhost:5000/swagger/ when running the daemon
