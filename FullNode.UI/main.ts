@@ -2,7 +2,7 @@ import { app, BrowserWindow, Menu, nativeImage, screen, Tray } from "electron";
 import * as path from "path";
 import * as url from "url";
 import * as os from "os";
-import { AppConfigService } from "./src/app/shared/services/appConfig.service";
+import { UiConfigSerialiser } from './src/app/shared/classes/ui-config-serialier'
 
 let serve;
 let testnet;
@@ -53,7 +53,7 @@ function createWindow() {
   }
 
   // Emitted when the window is going to close.
-  mainWindow.on("close", () => {});
+  mainWindow.on("close", () => { });
 
   // Emitted when the window is closed.
   mainWindow.on("closed", () => {
@@ -64,7 +64,7 @@ function createWindow() {
   });
 }
 
-let appConfigService = new AppConfigService("./appConfig.json");
+const uiConfig = UiConfigSerialiser.GetAppDataConfig();
 
 // This method will be called when Electron has finished
 // initialization and is ready to create browser windows.
@@ -74,10 +74,10 @@ app.on("ready", () => {
     console.log(
       "Stratis UI was started in development mode. This requires the user to be running the Stratis Full Node Daemon himself."
     );
-    if (appConfigService.startNode)
+    if (uiConfig.startNode)
       console.debug("In non DEV mode, configuration would have started a node");
   } else {
-    if (appConfigService.startNode) startStratisApi();
+    if (uiConfig.startNode) startStratisApi();
   }
   createTray();
   createWindow();
@@ -112,15 +112,16 @@ function closeStratisApi() {
     console.debug("Leaving without closing the Stratis API");
   }
   let apiCall;
-  if (appConfigService.apiUrl) {
+  if (uiConfig.apiUrl) {
     apiCall = {
-      hostname: appConfigService.apiUrl.hostname,
-      port: appConfigService.apiUrl.port,
-      path: appConfigService.apiUrl.pathname
+      hostname: uiConfig.apiUrl.hostname,
+      port: uiConfig.apiUrl.port,
+      path: uiConfig.apiUrl.pathname
     };
   } else {
     apiCall = {
-      hostname: appConfigService.apiUrl.hostname,
+
+      hostname: uiConfig.apiUrl.hostname,
       port: testnet ? 38221 : 37221,
       path: "api"
     };
@@ -130,7 +131,7 @@ function closeStratisApi() {
 
   var http2 = require("http");
 
-  const req = http2.request(apiCall, res => {});
+  const req = http2.request(apiCall, res => { });
   req.write("");
   req.end();
 }
@@ -188,20 +189,20 @@ function createTray() {
   const contextMenu = Menu.buildFromTemplate([
     {
       label: "Hide/Show",
-      click: function() {
+      click: function () {
         mainWindow.isVisible() ? mainWindow.hide() : mainWindow.show();
       }
     },
     {
       label: "Exit",
-      click: function() {
+      click: function () {
         app.quit();
       }
     }
   ]);
   systemTray.setToolTip("Stratis Wallet");
   systemTray.setContextMenu(contextMenu);
-  systemTray.on("click", function() {
+  systemTray.on("click", function () {
     if (!mainWindow.isVisible()) {
       mainWindow.show();
     }
@@ -211,7 +212,7 @@ function createTray() {
     }
   });
 
-  app.on("window-all-closed", function() {
+  app.on("window-all-closed", function () {
     if (systemTray) systemTray.destroy();
   });
 }
@@ -220,4 +221,4 @@ function writeLog(msg) {
   console.log(msg);
 }
 
-function createMenu() {}
+function createMenu() { }

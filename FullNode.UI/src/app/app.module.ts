@@ -24,6 +24,7 @@ import { SendConfirmationComponent } from './wallet/send/send-confirmation/send-
 import { ReceiveComponent } from './wallet/receive/receive.component';
 import { TransactionDetailsComponent } from './wallet/transaction-details/transaction-details.component';
 import { LogoutConfirmationComponent } from './wallet/logout-confirmation/logout-confirmation.component';
+import { AppConfigService } from './shared/services/app-config.service';
 
 
 @NgModule({
@@ -57,7 +58,7 @@ import { LogoutConfirmationComponent } from './wallet/logout-confirmation/logout
     TransactionDetailsComponent,
     LogoutConfirmationComponent
   ],
-  providers: [ ApiService, GlobalService, ModalService, Title ],
+  providers: [ ApiService, GlobalService, ModalService, Title, AppConfigService ],
   bootstrap: [ AppComponent ]
 })
 

@@ -16,18 +16,18 @@ import { Mnemonic } from '../classes/mnemonic';
 import { FeeEstimation } from '../classes/fee-estimation';
 import { TransactionBuilding } from '../classes/transaction-building';
 import { TransactionSending } from '../classes/transaction-sending';
-import { AppConfigService } from './app-config.service';
+import { UiConfig } from './../classes/ui-config';
 
 /**
  * For information on the API specification have a look at our swagger files located at http://localhost:5000/swagger/ when running the daemon
  */
 @Injectable()
 export class ApiService {
-    constructor(private http: Http, private globalService: GlobalService, private appConfigService: AppConfigService) {};
+    constructor(private http: Http, private globalService: GlobalService, private uiConfig: UiConfig) {};
 
     private headers = new Headers({'Content-Type': 'application/json'});
     private pollingInterval = 3000;
-    private stratisApiUrl = this.appConfigService.apiUrl.toString()
+    private stratisApiUrl = this.uiConfig.apiUrl.toString()
 
     /**
      * Gets available wallets at the default path

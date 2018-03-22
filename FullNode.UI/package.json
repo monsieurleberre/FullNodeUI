@@ -41,7 +41,11 @@
     "e2e": "npm-run-all -p pree2e:build pree2e:protractor"
   },
   "dependencies": {
-    "electron-context-menu": "0.9.1"
+    "@ngx-config/core": "^5.0.0",
+    "app": "^0.1.0",
+    "electron-context-menu": "0.9.1",
+    "ngx-fs": "0.0.1",
+    "remote": "^0.2.6"
   },
   "devDependencies": {
     "@angular/animations": "5.2.7",
